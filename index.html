@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastURL — Secure URL Shortener</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --secondary: #3B82F6;
+      --bg: #F5F7FB;
+      --card: #FFFFFF;
+      --success: #16A34A;
+      --success-bg: #DCFCE7;
+      --error: #DC2626;
+      --error-bg: #FEE2E2;
+      --text: #0F172A;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --radius: 18px;
+      --shadow: 0 4px 24px rgba(37, 99, 235, 0.08);
+      --shadow-hover: 0 12px 40px rgba(37, 99, 235, 0.14);
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== Layout ===== */
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ===== Hero ===== */
+    .hero {
+      text-align: center;
+      padding: 64px 0 40px;
+      animation: fadeIn 0.6s ease both;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--primary), #60A5FA);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      font-size: 1.125rem;
+      color: var(--text-muted);
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    /* ===== Cards ===== */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      transition: box-shadow var(--transition), transform var(--transition);
+      animation: slideUp 0.5s ease both;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    /* ===== Shortener Form ===== */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    .url-input {
+      width: 100%;
+      padding: 16px 18px 16px 48px;
+      font-size: 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      background: #FAFBFC;
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .url-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+      background: white;
+    }
+
+    .url-input::placeholder {
+      color: #94A3B8;
+    }
+
+    /* ===== Button ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+      width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--primary);
+      border: 1.5px solid var(--border);
+      padding: 12px 20px;
+      font-size: 0.9rem;
+    }
+
+    .btn-secondary:hover {
+      background: #F0F5FF;
+      border-color: var(--primary);
+    }
+
+    .btn-success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1.5px solid #BBF7D0;
+      padding: 12px 20px;
+      font-size: 0.9rem;
+    }
+
+    .btn-success:hover {
+      background: #BBF7D0;
+    }
+
+    /* Ripple effect */
+    .btn .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
+
+    /* ===== Spinner ===== */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2.5px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .btn.loading .spinner {
+      display: block;
+    }
+
+    .btn.loading .btn-text {
+      display: none;
+    }
+
+    /* ===== Messages ===== */
+    .message {
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: fadeIn 0.3s ease;
+      margin-top: 4px;
+    }
+
+    .message.show {
+      display: flex;
+    }
+
+    .message-success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #BBF7D0;
+    }
+
+    .message-error {
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1px solid #FECACA;
+    }
+
+    /* ===== Result Card ===== */
+    .result-url {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #F0F5FF;
+      border: 1.5px solid #BFDBFE;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      word-break: break-all;
+    }
+
+    .result-url a {
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 1.05rem;
+      text-decoration: none;
+      flex: 1;
+    }
+
+    .result-url a:hover {
+      text-decoration: underline;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* ===== Analytics Card ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      background: #F8FAFC;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .stat-value.clicks {
+      font-size: 1.75rem;
+      color: var(--primary);
+    }
+
+    .qr-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #F8FAFC;
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      padding: 32px;
+      color: var(--text-muted);
+      gap: 10px;
+    }
+
+    .qr-placeholder i {
+      font-size: 40px;
+      opacity: 0.4;
+    }
+
+    /* ===== Features ===== */
+    .features {
+      padding: 48px 0 32px;
+      animation: fadeIn 0.7s ease 0.2s both;
+    }
+
+    .features-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 28px;
+      letter-spacing: -0.02em;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 28px 22px;
+      text-align: center;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      transition: transform var(--transition), box-shadow var(--transition);
+      cursor: default;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 0 auto 16px;
+    }
+
+    .feature-icon.fast {
+      background: #DBEAFE;
+      color: var(--primary);
+    }
+
+    .feature-icon.secure {
+      background: #DCFCE7;
+      color: var(--success);
+    }
+
+    .feature-icon.analytics {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      text-align: center;
+      padding: 40px 0 48px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      animation: fadeIn 0.8s ease 0.3s both;
+    }
+
+    .footer-tech {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .tech-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .tech-badge i {
+      color: var(--primary);
+      font-size: 0.75rem;
+    }
+
+    /* ===== Hidden utility ===== */
+    .hidden {
+      display: none !important;
+    }
+
+    /* ===== Animations ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      .hero {
+        padding: 48px 0 32px;
+      }
+
+      .card {
+        padding: 24px 20px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .action-buttons .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========== HERO ========== -->
+  <section class="hero">
+    <div class="container">
+      <div class="logo">
+        <div class="logo-icon">
+          <i class="fa-solid fa-link"></i>
+        </div>
+      </div>
+      <h1>FastURL</h1>
+      <p>Generate secure short links and track analytics instantly.</p>
+    </div>
+  </section>
+
+  <!-- ========== MAIN CONTENT ========== -->
+  <main class="container">
+
+    <!-- Shortener Card -->
+    <section class="card" id="shortener-card">
+      <p class="card-title">Shorten a URL</p>
+      <form id="shorten-form" class="form-group" novalidate>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-globe"></i>
+          <input
+            type="url"
+            id="url-input"
+            class="url-input"
+            placeholder="https://example.com/very/long/url"
+            required
+            autocomplete="off"
+            spellcheck="false"
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="shorten-btn">
+          <span class="btn-text">
+            <i class="fa-solid fa-bolt"></i>
+            Shorten URL
+          </span>
+          <span class="spinner"></span>
+        </button>
+
+        <div class="message message-success" id="success-msg">
+          <i class="fa-solid fa-circle-check"></i>
+          <span></span>
+        </div>
+        <div class="message message-error" id="error-msg">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- Generated URL Card (hidden initially) -->
+    <section class="card hidden" id="result-card">
+      <p class="card-title">Your Short Link</p>
+      <div class="result-url">
+        <a id="short-url-link" href="#" target="_blank" rel="noopener"></a>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-success" id="copy-btn">
+          <i class="fa-regular fa-copy"></i>
+          Copy
+        </button>
+        <button class="btn btn-secondary" id="open-btn">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          Open URL
+        </button>
+        <button class="btn btn-secondary" id="analytics-btn">
+          <i class="fa-solid fa-chart-simple"></i>
+          View Analytics
+        </button>
+      </div>
+    </section>
+
+    <!-- Analytics Card (hidden initially) -->
+    <section class="card hidden" id="analytics-card">
+      <p class="card-title">Link Analytics</p>
+      <div class="stats-grid">
+        <div class="stat-item" style="grid-column: 1 / -1;">
+          <div class="stat-label">Original URL</div>
+          <div class="stat-value" id="stat-original">—</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Short URL</div>
+          <div class="stat-value" id="stat-short">—</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Total Clicks</div>
+          <div class="stat-value clicks" id="stat-clicks">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Created</div>
+          <div class="stat-value" id="stat-created">—</div>
+        </div>
+      </div>
+      <div class="qr-placeholder">
+        <i class="fa-solid fa-qrcode"></i>
+        <span>QR Code coming soon</span>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+      <h2 class="features-title">Why FastURL?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon fast">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <h3>⚡ Fast</h3>
+          <p>Lightning-fast redirects powered by a high-performance backend.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon secure">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <h3>🔒 Secure</h3>
+          <p>Every link is validated and stored safely with industry best practices.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon analytics">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <h3>📈 Analytics</h3>
+          <p>Track clicks and performance of every short link in real time.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container">
+      <p>Built using</p>
+      <div class="footer-tech">
+        <span class="tech-badge"><i class="fa-solid fa-server"></i> FastAPI</span>
+        <span class="tech-badge"><i class="fa-solid fa-database"></i> PostgreSQL</span>
+        <span class="tech-badge"><i class="fa-solid fa-layer-group"></i> SQLAlchemy</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ===== DOM References ===== */
+    const form = document.getElementById("shorten-form");
+    const urlInput = document.getElementById("url-input");
+    const shortenBtn = document.getElementById("shorten-btn");
+    const successMsg = document.getElementById("success-msg");
+    const errorMsg = document.getElementById("error-msg");
+    const resultCard = document.getElementById("result-card");
+    const analyticsCard = document.getElementById("analytics-card");
+    const shortUrlLink = document.getElementById("short-url-link");
+    const copyBtn = document.getElementById("copy-btn");
+    const openBtn = document.getElementById("open-btn");
+    const analyticsBtn = document.getElementById("analytics-btn");
+
+    /* State */
+    let currentShortCode = null;
+    let currentShortUrl = null;
+
+    /* ===== Utility Functions ===== */
+    function showMessage(el, text) {
+      el.querySelector("span").textContent = text;
+      el.classList.add("show");
+    }
+
+    function hideMessages() {
+      successMsg.classList.remove("show");
+      errorMsg.classList.remove("show");
+    }
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        shortenBtn.classList.add("loading");
+        shortenBtn.disabled = true;
+      } else {
+        shortenBtn.classList.remove("loading");
+        shortenBtn.disabled = false;
+      }
+    }
+
+    function isValidUrl(string) {
+      try {
+        const url = new URL(string);
+        return url.protocol === "http:" || url.protocol === "https:";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function createRipple(e) {
+      const btn = e.currentTarget;
+      const circle = document.createElement("span");
+      const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+      const radius = diameter / 2;
+
+      circle.style.width = circle.style.height = `${diameter}px`;
+      circle.style.left = `${e.clientX - btn.getBoundingClientRect().left - radius}px`;
+      circle.style.top = `${e.clientY - btn.getBoundingClientRect().top - radius}px`;
+      circle.classList.add("ripple");
+
+      const existing = btn.querySelector(".ripple");
+      if (existing) existing.remove();
+
+      btn.appendChild(circle);
+    }
+
+    /* ===== API Calls ===== */
+    async function shortenUrl(longUrl) {
+      const response = await fetch("/shorten/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ url: longUrl })
+      });
+
+      if (!response.ok) {
+        let detail = "Something went wrong. Please try again.";
+        try {
+          const err = await response.json();
+          detail = err.detail || err.message || detail;
+        } catch (_) {}
+        throw new Error(detail);
+      }
+
+      return response.json();
+    }
+
+    async function fetchStats(shortCode) {
+      const response = await fetch(`/stats/${encodeURIComponent(shortCode)}`, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+      });
+
+      if (!response.ok) {
+        let detail = "Could not load analytics.";
+        try {
+          const err = await response.json();
+          detail = err.detail || err.message || detail;
+        } catch (_) {}
+        throw new Error(detail);
+      }
+
+      return response.json();
+    }
+
+    /* ===== UI Handlers ===== */
+    function displayResult(data) {
+      // Expected response shape (adjust keys to match your FastAPI schema):
+      // { short_url: "https://...", short_code: "abc123", original_url: "..." }
+      currentShortUrl = data.short_url || data.shortUrl || `${window.location.origin}/${data.short_code || data.shortCode}`;
+      currentShortCode = data.short_code || data.shortCode || currentShortUrl.split("/").pop();
+
+      shortUrlLink.textContent = currentShortUrl;
+      shortUrlLink.href = currentShortUrl;
+
+      resultCard.classList.remove("hidden");
+      resultCard.style.animation = "none";
+      resultCard.offsetHeight; // reflow
+      resultCard.style.animation = "slideUp 0.45s ease both";
+
+      analyticsCard.classList.add("hidden");
+    }
+
+    function displayAnalytics(data) {
+      document.getElementById("stat-original").textContent =
+        data.original_url || data.originalUrl || data.url || "—";
+      document.getElementById("stat-short").textContent =
+        data.short_url || data.shortUrl || currentShortUrl || "—";
+      document.getElementById("stat-clicks").textContent =
+        data.clicks ?? data.total_clicks ?? data.totalClicks ?? 0;
+
+      const created = data.created_at || data.createdAt || data.created;
+      document.getElementById("stat-created").textContent = created
+        ? new Date(created).toLocaleString()
+        : "—";
+
+      analyticsCard.classList.remove("hidden");
+      analyticsCard.style.animation = "none";
+      analyticsCard.offsetHeight;
+      analyticsCard.style.animation = "slideUp 0.45s ease both";
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+      hideMessages();
+
+      const raw = urlInput.value.trim();
+      if (!raw) {
+        showMessage(errorMsg, "Please enter a URL.");
+        urlInput.focus();
+        return;
+      }
+
+      if (!isValidUrl(raw)) {
+        showMessage(errorMsg, "Please enter a valid URL starting with http:// or https://");
+        urlInput.focus();
+        return;
+      }
+
+      setLoading(true);
+      resultCard.classList.add("hidden");
+      analyticsCard.classList.add("hidden");
+
+      try {
+        const data = await shortenUrl(raw);
+        showMessage(successMsg, "URL shortened successfully!");
+        displayResult(data);
+        urlInput.value = "";
+      } catch (err) {
+        showMessage(errorMsg, err.message || "Failed to shorten URL.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    async function handleCopy() {
+      if (!currentShortUrl) return;
+      try {
+        await navigator.clipboard.writeText(currentShortUrl);
+        const original = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        setTimeout(() => {
+          copyBtn.innerHTML = original;
+        }, 2000);
+      } catch (_) {
+        // Fallback
+        const ta = document.createElement("textarea");
+        ta.value = currentShortUrl;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        const original = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        setTimeout(() => {
+          copyBtn.innerHTML = original;
+        }, 2000);
+      }
+    }
+
+    function handleOpen() {
+      if (currentShortUrl) {
+        window.open(currentShortUrl, "_blank", "noopener,noreferrer");
+      }
+    }
+
+    async function handleAnalytics() {
+      if (!currentShortCode) return;
+      hideMessages();
+      analyticsBtn.disabled = true;
+      analyticsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+
+      try {
+        const data = await fetchStats(currentShortCode);
+        displayAnalytics(data);
+      } catch (err) {
+        showMessage(errorMsg, err.message || "Failed to load analytics.");
+      } finally {
+        analyticsBtn.disabled = false;
+        analyticsBtn.innerHTML = '<i class="fa-solid fa-chart-simple"></i> View Analytics';
+      }
+    }
+
+    /* ===== Event Listeners ===== */
+    form.addEventListener("submit", handleSubmit);
+
+    urlInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        form.dispatchEvent(new Event("submit"));
+      }
+    });
+
+    copyBtn.addEventListener("click", handleCopy);
+    openBtn.addEventListener("click", handleOpen);
+    analyticsBtn.addEventListener("click", handleAnalytics);
+
+    // Ripple on primary button
+    shortenBtn.addEventListener("click", createRipple);
+
+    // Clear messages when user starts typing again
+    urlInput.addEventListener("input", hideMessages);
+  </script>
+</body>
+</html>
