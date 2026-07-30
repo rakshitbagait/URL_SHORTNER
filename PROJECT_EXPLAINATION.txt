@@ -1,0 +1,189 @@
+=========================================
+FastURL - URL Shortener API
+=========================================
+
+Project Overview
+----------------
+This project is a simple URL Shortener API developed using FastAPI and PostgreSQL. It allows users to convert long URLs into short, unique URLs. When a short URL is opened, the user is redirected to the original URL and the number of clicks is recorded in the database.
+
+-----------------------------------------
+Technologies Used
+-----------------------------------------
+
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- Pydantic
+- Uvicorn
+
+-----------------------------------------
+Project Structure
+-----------------------------------------
+
+URL-SHORTENER/
+
+│
+├── app.py
+│   Main FastAPI application containing all API endpoints.
+│
+├── db.py
+│   Database connection and SQLAlchemy configuration.
+│
+├── models.py
+│   SQLAlchemy model for storing URL information.
+│
+├── index.html
+│   Simple frontend interface for shortening URLs.
+│
+├── requirements.txt
+│   List of Python dependencies.
+│
+├── README.md
+│   Detailed project documentation.
+│
+└── PROJECT_EXPLANATION.txt
+    Project explanation.
+
+-----------------------------------------
+API Endpoints
+-----------------------------------------
+
+GET /
+
+Serves the frontend page.
+
+-----------------------------------------
+
+POST /shorten
+
+Accepts a long URL and returns a shortened URL.
+
+Example Request
+
+{
+    "url": "https://www.google.com"
+}
+
+Example Response
+
+{
+    "message": "URL shortened successfully.",
+    "original_url": "https://www.google.com",
+    "short_code": "Ab12Cd34",
+    "short_url": "http://127.0.0.1:8000/Ab12Cd34"
+}
+
+-----------------------------------------
+
+GET /{short_code}
+
+Redirects the user to the original URL and increases the click count.
+
+-----------------------------------------
+
+GET /stats/{short_code}
+
+Returns statistics for a shortened URL.
+
+Example Response
+
+{
+    "original_url": "https://www.google.com",
+    "short_code": "Ab12Cd34",
+    "short_url": "http://127.0.0.1:8000/Ab12Cd34",
+    "clicks": 5
+}
+
+-----------------------------------------
+Database
+-----------------------------------------
+
+Table Name
+
+urls
+
+Columns
+
+id
+Primary key.
+
+original_url
+Stores the original URL.
+
+short_code
+Stores the generated unique short code.
+
+clicks
+Stores the total number of redirects.
+
+-----------------------------------------
+How the Project Works
+-----------------------------------------
+
+1. The user enters a long URL.
+2. The API checks whether the URL already exists.
+3. If it exists, the existing short URL is returned.
+4. Otherwise, a secure random 8-character short code is generated.
+5. The URL is saved in PostgreSQL.
+6. The API returns the shortened URL.
+7. When the shortened URL is opened, the user is redirected to the original website.
+8. Every redirect increases the click count by one.
+
+-----------------------------------------
+Installation
+-----------------------------------------
+
+1. Install Python.
+
+2. Install PostgreSQL.
+
+3. Create a PostgreSQL database.
+
+Example
+
+CREATE DATABASE url_shortener_db;
+
+4. Configure the database credentials inside db.py.
+
+5. Install the required packages.
+
+pip install -r requirements.txt
+
+6. Run the application.
+
+uvicorn app:app --reload
+
+-----------------------------------------
+Application URLs
+-----------------------------------------
+
+Application
+
+http://127.0.0.1:8000
+
+Swagger Documentation
+
+http://127.0.0.1:8000/docs
+
+ReDoc Documentation
+
+http://127.0.0.1:8000/redoc
+
+-----------------------------------------
+Future Improvements
+-----------------------------------------
+
+- User Authentication
+- Custom Short URLs
+- QR Code Generation
+- URL Expiration
+- Better Analytics
+- Docker Support
+
+-----------------------------------------
+Author
+-----------------------------------------
+
+Rakshit Bagait
+
+Developed as part of the FastAPI & PostgreSQL Internship Assessment.
