@@ -153,7 +153,7 @@ Columns
 ## Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/rakshitbagait/URL_SHORTNER
 ```
 
 or download the project as ZIP.
