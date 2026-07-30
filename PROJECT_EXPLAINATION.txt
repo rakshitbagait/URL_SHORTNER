@@ -14,7 +14,7 @@ This project is a simple URL Shortener API developed using FastAPI and PostgreSQ
 
 -----------------------------------------
 Technologies Used
------------------------------------------
+----------------------------------------
 
 - FastAPI
 - PostgreSQL
