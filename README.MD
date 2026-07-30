@@ -1,3 +1,5 @@
+
+![Home Page](images/home.png)
 # 🔗 FastURL - URL Shortener API
 
 A simple URL Shortener API built using **FastAPI** and **PostgreSQL**. The application allows users to shorten long URLs into unique short links and redirect users back to the original URL while tracking the number of clicks.
